@@ -15,7 +15,7 @@ The BIML database captures wild bee occurrence and sampling event details using 
 1. **Reads** the massive, compressed `USGS_DRO_flat.txt.gz` file.
 2. **Performs QA/QC** to flag invalid dates, coordinates, and taxonomic names.
 3. **Joins** the occurrence data with project-level metadata (e.g., USFWS GLRI).
-4. **Queries** the GBIF Backbone Taxonomy API to validate and standardize scientific names.
+4. **Queries** the GBIF Backbone Taxonomy API to validate and standardize scientific names (Takes around 40 mins).
 5. **Transforms** the custom BIML fields into standard Darwin Core terms.
 6. **Exports** the final dataset into three standard DwC tables: `event`, `occurrence`, and `extended measurement or fact (EMoF)`.
 
