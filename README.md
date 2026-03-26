@@ -6,7 +6,8 @@ This repository contains the R-based ETL (Extract, Transform, Load) pipeline for
 
 **Original workflow and guideline:** [Aligning BIML Database to Darwin Core for Publication to GBIF](https://sformel.github.io/biml_bee_publishing/) by S. Formel
 
-Current contact: hilola_adham@fws.gov
+Current contacts: Scarlett Adham hilola_adham@fws.gov
+                  Clare Maffei   clare_maffei@fws.gov
 
 ## Overview
 
