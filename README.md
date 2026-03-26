@@ -1,2 +1,2 @@
-# biml_bee_publishing_v2
-Updated workflow to publish pollinator data to GBIF
+# biml_bee_publishing
+Workflow for publishing BIML native bee data to GBIF

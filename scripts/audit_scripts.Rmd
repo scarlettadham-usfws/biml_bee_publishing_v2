@@ -1,0 +1,95 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(here)
+
+# 1. Find ONLY the .gz files (Stricter pattern)
+# pattern = "DwC_EMoF.*\\.gz$" means: Must contain "DwC_EMoF" AND end with ".gz"
+files <- list.files(path = here("output"), pattern = "DwC_EMoF.*\\.gz$", full.names = TRUE)
+
+if(length(files) == 0) stop("No .gz files found in output folder.")
+
+print(paste("Successfully found", length(files), "valid data files."))
+
+# 2. Read and Combine
+audit_data <- map_df(files, function(file_path) {
+  
+  file_name <- basename(file_path)
+  # Extract Project Name
+  project_id <- str_remove(file_name, "_DwC_EMoF_.*$")
+  
+  # Read safely
+  read_csv(file_path, show_col_types = FALSE) %>%
+    select(measurementType, measurementValue) %>%
+    mutate(ProjectID = project_id)
+})
+
+# 3. Summarize
+summary_table <- audit_data %>%
+  group_by(ProjectID, measurementType, measurementValue) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(ProjectID, measurementType, desc(Count))
+
+# 4. View in RStudio (Safest way, no file permission issues)
+View(summary_table)
+
+# 5. Optional: Save to Downloads folder to avoid OneDrive locks
+write_csv(summary_table, file.path(Sys.getenv("USERPROFILE"), "Downloads", "EMoF_Audit_Report.csv"))
+print("Backup copy saved to your Downloads folder.")
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+```{r}
+library(tidyverse)
+library(here)
+
+# 1. READ THE FILES FIRST (This is where it fails)
+occ_files <- list.files(path = here("output"), pattern = "_DwC_occ_", full.names = TRUE)
+if(length(occ_files) == 0) stop("No files found.")
+
+# Try to copy the files to a safe location before reading
+temp_dir <- file.path(Sys.getenv("USERPROFILE"), "Downloads", "temp_audit")
+dir.create(temp_dir, showWarnings = FALSE)
+file.copy(occ_files, temp_dir)
+
+# Now read from the safe location
+safe_files <- list.files(path = temp_dir, full.names = TRUE)
+final_occ_data <- map_df(safe_files, read_csv, show_col_types = FALSE)
+
+# Clean up the temp folder
+unlink(temp_dir, recursive = TRUE)
+
+# --- The rest of the script is the same ---
+
+# 2. Find dropped rows
+dropped_rows <- anti_join(biml_flat, final_occ_data, by = c("ID." = "catalogNumber"))
+
+# 3. Add explanation
+dropped_rows_explained <- dropped_rows %>%
+  mutate(
+    Drop_Reason = case_when(
+      name %in% c("Deleted", "Destroyed", "Destroyed ", "Destoryed", "Destroy", "destroyed", "no ID", "Unknown", "No_Bees_Found") ~ "Specimen Destroyed/Lost/Not Bee",
+      COLLECTION.db == 'USA' ~ "Invalid Collection Event",
+      TRUE ~ "Taxonomy Check Failed or Other" 
+    )
+  )
+
+# 4. Show summary and save
+print(table(dropped_rows_explained$Drop_Reason))
+write_csv(dropped_rows_explained, here("output", "DROPPED_RECORDS_REPORT.csv"))
+```
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+```{r}
+
+```
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
