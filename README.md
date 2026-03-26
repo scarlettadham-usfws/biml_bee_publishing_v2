@@ -27,7 +27,7 @@ install.packages(c("tidyverse", "httr2", "lubridate", "sf", "readr", "stringr", 
 ```
 - **R:** Version 4.0 or higher
 - **RStudio:** Recommended
-- **Required R packages:**
+
   
 ## Project Structure & Required Files
 
